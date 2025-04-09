@@ -1,0 +1,1 @@
+attendanceModel = (sequelize, DataTypes) => {}
