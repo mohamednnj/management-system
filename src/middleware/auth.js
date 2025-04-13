@@ -17,7 +17,7 @@ exports.protect = asyncWrapper(
         console.log("asas",decoded)
         req.user = await User.findById(decoded.id)//.select('password');
         if (!req.user) {
-            return next(createError(401, 'unAuth', 'غير مخول للوصول', null));
+            return next(createError(401, 'unAuth', 'غير مسموح للوصول', null));
         }
         if (req.user.role === 'student' && !req.user.hasPaidFees) {
             return next(createError(403, 'forbidden', 'يجب دفع الرسوم للوصول إلى هذه الصفحة', null));
@@ -30,7 +30,7 @@ exports.protect = asyncWrapper(
 exports.checkRole = (roles) => (req, res, next) => {
     if (typeof roles === 'string') roles = [roles];
     if (!roles.includes(req.user.role)) {
-        return res.status(403).json({message: 'غير مخول لهذه العملية'});
+        return res.status(403).json({message: 'غير مسموح لهذه العملية'});
     }
     next();
 };
