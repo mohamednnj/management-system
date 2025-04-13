@@ -10,7 +10,6 @@ exports.getGPA = asyncWrapper(
         if (!student) {
             return next(createError(404, "not found", "الطالب غير موجود", null));
         }
-        // grades: [{ subject: 'Math', score: 90, creditHours: 3}]
         console.log("ss",student.grades );
 
         if (!student.grades || student.grades.length === 0) {

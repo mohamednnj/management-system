@@ -4,64 +4,75 @@ info:
   version: 1.0.0
   description: API Documentation for University Management System
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:5000
     description: Local server
+  - url: /api/v1
+    description: API base path
+
+tags:
+  - name: Authentication
+    description: User registration and login
+  - name: Posts
+    description: Course posts and announcements
+  - name: Exams
+    description: Exam management
+  - name: Students
+    description: Student information
+  - name: Attendance
+    description: QR-based attendance management
+
 paths:
-  /api/v1/auth/register:
+  /auth/register:
     post:
+      tags: [Authentication]
       summary: Register a new user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - name
-                - email
-                - password
-                - role
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                role:
-                  type: string
-                  enum: [student, professor, ta, staff]
+              $ref: '#/components/schemas/RegisterUser'
       responses:
         '201':
           description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/auth/login:
+  /auth/login:
     post:
+      tags: [Authentication]
       summary: Login a user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginUser'
       responses:
         '200':
           description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/posts:
+  /posts:
     post:
+      tags: [Posts]
       summary: Create a new post
       security:
         - bearerAuth: []
@@ -70,31 +81,36 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                title:
-                  type: string
-                content:
-                  type: string
-                image:
-                  type: string
-                  format: binary
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/CreatePost'
       responses:
         '201':
           description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
         '403':
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     get:
+      tags: [Posts]
       summary: Get all posts
       responses:
         '200':
           description: A list of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostResponse'
 
-  /api/v1/exams:
+  /exams:
     post:
+      tags: [Exams]
       summary: Create an exam
       security:
         - bearerAuth: []
@@ -103,72 +119,504 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - courseId
-                - questions
-              properties:
-                courseId:
-                  type: string
-                questions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      questionText:
-                        type: string
-                      options:
-                        type: array
-                        items:
-                          type: string
-                      correctAnswer:
-                        type: string
+              $ref: '#/components/schemas/CreateExam'
       responses:
         '201':
           description: Exam created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/exams/{id}/submit:
+  /exams/{id}/submit:
     post:
+      tags: [Exams]
       summary: Submit answers to an exam
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/ExamId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                answers:
-                  type: array
-                  items:
-                    type: string
+              $ref: '#/components/schemas/SubmitExam'
       responses:
         '200':
           description: Answers submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamResult'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/students/{id}/gpa:
+  /students/{id}/gpa:
     get:
+      tags: [Students]
       summary: Get GPA for a student
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
+        - $ref: '#/components/parameters/StudentId'
       responses:
         '200':
           description: GPA retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGPA'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/qr:
+    post:
+      tags: [Attendance]
+      summary: Create QR code for attendance session
+      description: Generates a unique QR code for a course session that students can scan to mark attendance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQRRequest'
+      responses:
+        '200':
+          description: QR code created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/scan:
+    post:
+      tags: [Attendance]
+      summary: Scan QR code to mark attendance
+      description: Records student attendance by scanning a valid QR code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanQRRequest'
+      responses:
+        '200':
+          description: Attendance recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/{courseId}:
+    get:
+      tags: [Attendance]
+      summary: Get attendance records for a course
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: List of attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttendanceRecord'
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
+  schemas:
+    RegisterUser:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        role:
+          type: string
+          enum: [student, professor, ta, staff]
+          example: "student"
+
+    LoginUser:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439011"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        role:
+          type: string
+          example: "student"
+
+    CreatePost:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          example: "Important Announcement"
+        content:
+          type: string
+          example: "Midterm exam has been postponed"
+        image:
+          type: string
+          format: binary
+        file:
+          type: string
+          format: binary
+
+    PostResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439022"
+        title:
+          type: string
+          example: "Important Announcement"
+        content:
+          type: string
+          example: "Midterm exam has been postponed"
+        author:
+          $ref: '#/components/schemas/UserRef'
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-05-15T10:00:00Z"
+
+    CreateExam:
+      type: object
+      required:
+        - courseId
+        - questions
+      properties:
+        courseId:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439033"
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamQuestion'
+
+    ExamQuestion:
+      type: object
+      required:
+        - questionText
+        - options
+        - correctAnswer
+      properties:
+        questionText:
+          type: string
+          example: "What is 2+2?"
+        options:
+          type: array
+          items:
+            type: string
+          example: ["3", "4", "5", "6"]
+        correctAnswer:
+          type: string
+          example: "4"
+
+    ExamResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439044"
+        courseId:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439033"
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamQuestion'
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-05-15T10:00:00Z"
+
+    SubmitExam:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          items:
+            type: string
+          example: ["4", "Paris", "42"]
+
+    ExamResult:
+      type: object
+      properties:
+        score:
+          type: number
+          format: float
+          example: 85.5
+        totalQuestions:
+          type: integer
+          example: 10
+        correctAnswers:
+          type: integer
+          example: 8
+
+    StudentGPA:
+      type: object
+      properties:
+        studentId:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439055"
+        gpa:
+          type: number
+          format: float
+          example: 3.75
+        semester:
+          type: string
+          example: "Fall 2023"
+
+    # Attendance schemas (from previous example)
+    CreateQRRequest:
+      type: object
+      required:
+        - courseId
+        - sessionInfo
+      properties:
+        courseId:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439011"
+        sessionInfo:
+          $ref: '#/components/schemas/SessionInfo'
+
+    SessionInfo:
+      type: object
+      required:
+        - sessionName
+        - sessionDate
+        - sessionTime
+      properties:
+        sessionName:
+          type: string
+          example: "Lecture 1 - Introduction"
+        sessionDate:
+          type: string
+          format: date
+          example: "2023-12-15"
+        sessionTime:
+          type: string
+          format: time
+          example: "14:30:00"
+        location:
+          type: string
+          example: "Building A, Room 101"
+
+    ScanQRRequest:
+      type: object
+      required:
+        - courseId
+        - sessionIdentifier
+      properties:
+        courseId:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439011"
+        sessionIdentifier:
+          type: string
+          example: "507f1f77bcf86cd799439011-1634567890123"
+
+    QRCodeResponse:
+      type: object
+      properties:
+        qrCodeUrl:
+          type: string
+          format: uri
+          example: "/uploads/qrCodes/507f1f77bcf86cd799439011-1634567890123.png"
+        sessionIdentifier:
+          type: string
+          example: "507f1f77bcf86cd799439011-1634567890123"
+        expirationTime:
+          type: string
+          format: date-time
+          example: "2023-12-15T16:30:00Z"
+
+    AttendanceRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439066"
+        student:
+          $ref: '#/components/schemas/UserRef'
+        course:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439011"
+        sessionIdentifier:
+          type: string
+          example: "507f1f77bcf86cd799439011-1634567890123"
+        attendedAt:
+          type: string
+          format: date-time
+          example: "2023-12-15T14:35:22Z"
+
+    UserRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+          example: "507f1f77bcf86cd799439077"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid input"
+        message:
+          type: string
+          example: "Missing required field: email"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Email is required"
+
+  parameters:
+    ExamId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: objectId
+      description: The ID of the exam
+    StudentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: objectId
+      description: The ID of the student
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: objectId
+      description: The ID of the course
+
   securitySchemes:
     bearerAuth:
       type: http

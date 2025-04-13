@@ -7,7 +7,6 @@ const generateQRCode = async (data, outputFilePath) => {
     try {
         const directory = path.dirname(outputFilePath);
 
-        // Ensure the directory exists
         if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory, {recursive: true});
         }

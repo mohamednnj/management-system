@@ -4,7 +4,6 @@ const User = require('../models/userModel');
 const {createError} = require("../utils/createError");
 const {asyncWrapper} = require("../utils/asyucWrapper");
 
-// حماية المسارات باستخدام JWT
 exports.protect = asyncWrapper(
     async (req, res, next) => {
         let token;
@@ -24,7 +23,6 @@ exports.protect = asyncWrapper(
             return next(createError(403, 'forbidden', 'يجب دفع الرسوم للوصول إلى هذه الصفحة', null));
         }
         next()
-        // return next(createError(401, 'unAuth', 'رمز التحقق غير صالح', null));
 
     });
 

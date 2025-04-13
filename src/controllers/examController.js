@@ -4,7 +4,6 @@ const User = require('../models/userModel');
 const {asyncWrapper} = require("../utils/asyucWrapper");
 const {createError} = require("../utils/createError");
 
-// إنشاء اختبار جديد
 exports.createExam = asyncWrapper(
     async (req, res, next) => {
     const {courseId, title, startTime, endTime, questions} = req.body;

@@ -25,7 +25,6 @@ exports.createQRCode = asyncWrapper(
 
         let course = await findOneId(Course, courseId, 'course');
 
-        // يمكن التحقق من صلاحيات المستخدم هنا...
 
         // uuid
         const sessionIdentifier = `${courseId}-${Date.now()}`;
@@ -33,7 +32,6 @@ exports.createQRCode = asyncWrapper(
         const qrCodeFilePath = `uploads/qrCodes/${sessionIdentifier}.png`;
         const qrCodeUrl = await generateQRCode(qrData, qrCodeFilePath);
 
-        // يمكنك حفظ الجلسة في قاعدة البيانات إذا لزم الأمر، مثلاً تخزين المعرف مع تفاصيل الحضور
         return next(createError(200, "success", "QR Code تم إنشاؤه بنجاح", {
             qrCodeUrl,
             sessionIdentifier
@@ -56,7 +54,7 @@ exports.scanQRCode = asyncWrapper(
         let course = await findOneId(Course, courseId, 'course');
 
         const attendanceRecord = await Attendance.create({
-            student: req.user._id,  // نفترض وجود middleware يؤمن الـ JWT ويضع بيانات المستخدم في req.user
+            student: req.user._id,
             course: courseId,
             sessionIdentifier
         });
