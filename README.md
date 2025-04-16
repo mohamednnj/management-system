@@ -88,12 +88,8 @@ Fill in the values in `.env`:
 PORT=5000
 MONGO_URI=your_mongodb_connection_uri
 JWT_SECRET=your_jwt_secret
-CLOUDINARY_NAME=your_cloudinary_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-STRIPE_SECRET_KEY=your_stripe_secret
-STRIPE_PUBLISHABLE_KEY=your_stripe_key
 ```
+
 
 ### 4. Run the server
 
